@@ -1,9 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { UsersIcon, ReceiptTextIcon, CircleDollarSignIcon, ClockIcon, Trash2Icon } from "lucide-react";
+import { UsersIcon, ReceiptTextIcon, CircleDollarSignIcon, ClockIcon, Trash2Icon, LinkIcon, CheckIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deleteTrip } from "@/actions/trips";
@@ -72,6 +72,7 @@ function StageDetail({ trip }: { trip: TripSummary }) {
 
 function TripCard({ trip }: { trip: TripSummary }) {
   const [isPending, startTransition] = useTransition();
+  const [copied, setCopied] = useState(false);
   const stageLabel = STAGE_LABELS[trip.status];
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -83,6 +84,16 @@ function TripCard({ trip }: { trip: TripSummary }) {
     startTransition(() => deleteTrip(trip.id));
   };
 
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const url = `${window.location.origin}/trip/${trip.id}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <Link
       href={`/trip/${trip.id}`}
@@ -90,15 +101,25 @@ function TripCard({ trip }: { trip: TripSummary }) {
     >
       <div className="flex items-start justify-between gap-2">
         <span className="truncate font-medium leading-6">{trip.name}</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-mr-1.5 -mt-1.5 size-7 shrink-0 p-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
-          onClick={handleDelete}
-          disabled={isPending}
-        >
-          <Trash2Icon className="size-3.5" />
-        </Button>
+        <div className="-mr-1.5 -mt-1.5 flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="size-7 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+            onClick={handleShare}
+          >
+            {copied ? <CheckIcon className="size-3.5" /> : <LinkIcon className="size-3.5" />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="size-7 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+            onClick={handleDelete}
+            disabled={isPending}
+          >
+            <Trash2Icon className="size-3.5" />
+          </Button>
+        </div>
       </div>
 
       <div className="mt-2">

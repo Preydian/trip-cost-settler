@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TripContent } from "@/components/trip-content";
+import { ShareTripButton } from "@/components/share-trip-button";
 import type {
   Trip,
   Participant,
@@ -76,12 +77,15 @@ export default async function TripPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   const data = await loadTripData(id);
 
   if (!data) notFound();
 
   const { trip, participants, expenses, rawInputs, latestSettlement, payments } = data;
   const currentBatch = latestSettlement ? latestSettlement.batch + 1 : 1;
+  const isOwner = !!user && trip.user_id === user.id;
 
   return (
     <div className="mx-auto min-h-screen max-w-3xl px-4 py-8">
@@ -93,7 +97,10 @@ export default async function TripPage({
           <ArrowLeftIcon className="size-3.5" />
           Dashboard
         </Link>
-        <h1 className="mt-2 text-2xl font-bold">{trip.name}</h1>
+        <div className="mt-2 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{trip.name}</h1>
+          {isOwner && <ShareTripButton tripId={trip.id} />}
+        </div>
       </div>
 
       <TripContent
@@ -103,6 +110,7 @@ export default async function TripPage({
         rawTexts={rawInputs.map((r) => r.raw_text)}
         payments={payments}
         currentBatch={currentBatch}
+        isOwner={isOwner}
       />
     </div>
   );

@@ -32,6 +32,7 @@ export function TripContent({
   rawTexts,
   payments,
   currentBatch,
+  isOwner = false,
 }: {
   trip: Trip;
   participants: Participant[];
@@ -39,11 +40,12 @@ export function TripContent({
   rawTexts: string[];
   payments: PaymentWithNames[];
   currentBatch: number;
+  isOwner?: boolean;
 }) {
   const [viewingStatus, setViewingStatus] = useState(trip.status);
   const [showLateExpenses, setShowLateExpenses] = useState(false);
 
-  const readOnly = ORDER[viewingStatus] < ORDER[trip.status];
+  const readOnly = !isOwner || ORDER[viewingStatus] < ORDER[trip.status];
   const pastParsing = ORDER[trip.status] > 0;
 
   return (
@@ -98,7 +100,7 @@ export function TripContent({
           />
         )}
 
-        {pastParsing && (
+        {pastParsing && isOwner && (
           <>
             <Separator className="my-6" />
 
