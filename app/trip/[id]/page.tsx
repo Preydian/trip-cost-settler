@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeftIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TripContent } from "@/components/trip-content";
 import type {
@@ -75,9 +77,15 @@ export default async function TripPage({
 
   return (
     <div className="mx-auto min-h-screen max-w-3xl px-4 py-8">
-      <div className="mb-2 flex items-baseline gap-3">
-        <h1 className="text-2xl font-bold">{trip.name}</h1>
-        <span className="text-xs text-muted-foreground">ID: {trip.id}</span>
+      <div className="mb-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeftIcon className="size-3.5" />
+          Dashboard
+        </Link>
+        <h1 className="mt-1 text-2xl font-bold">{trip.name}</h1>
       </div>
 
       <TripContent

@@ -5,6 +5,7 @@ export interface Trip {
   name: string;
   currency: string;
   status: TripStatus;
+  user_id: string | null;
   created_at: string;
   updated_at: string;
 }

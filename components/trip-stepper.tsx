@@ -47,8 +47,8 @@ export function TripStepper({
               isViewing && "bg-primary text-primary-foreground",
               !isViewing && isDone && "bg-primary/20 text-primary hover:bg-primary/30",
               !isViewing && !isDone && i === currentIdx && "bg-muted text-foreground hover:bg-muted/80",
-              !isReachable && "bg-muted text-muted-foreground opacity-50",
-              isReachable && !isViewing && "cursor-pointer"
+              !isReachable && "bg-muted text-muted-foreground opacity-50 cursor-default",
+              isReachable && "cursor-pointer"
             )}
           >
             <span className="mr-1.5 text-[10px]">{i + 1}.</span>

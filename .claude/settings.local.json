@@ -21,7 +21,9 @@
       "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && npx tsc --noEmit 2>&1)",
       "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && pnpm install 2>&1 | tail -10)",
       "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -rf .next && npx tsc --noEmit 2>&1)",
-      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -rf .next && npx next build 2>&1)"
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -rf .next && npx next build 2>&1)",
+      "Bash(npx next:*)",
+      "Bash(find \"C:\\\\Users\\\\Raith\\\\Documents\\\\Code\\\\trip-cost-settler\" -type f -name \"*.sql\" 2>/dev/null | head -20)"
     ]
   }
 }
