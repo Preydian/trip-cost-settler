@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(cp:*)",
+      "Bash(pnpm add:*)",
+      "Bash(rm:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm:*)",
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -rf app/login app/dashboard app/jobs app/bookmarklet)",
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -f components/google-sign-in-button.tsx components/navbar.tsx components/job-card.tsx components/job-status-badge.tsx components/job-notes.tsx components/status-select.tsx components/delete-job-button.tsx components/empty-state.tsx)",
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -rf .next && npm run build 2>&1)",
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && npx next build 2>&1)",
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && npx tsc --noEmit 2>&1)"
+    ]
+  }
+}
