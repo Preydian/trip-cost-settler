@@ -7,17 +7,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { saveExtractedExpenses } from "@/actions/expenses";
 import { createSettlement } from "@/actions/settlements";
 import { updateTripStatus } from "@/actions/trips";
-import type { ExtractionResult, Participant } from "@/lib/types";
+import type { ExtractionResult, Participant, TripStatus } from "@/lib/types";
 
 export function AddLateExpenses({
   tripId,
   participants,
   batch,
+  currentStatus,
   onDone,
 }: {
   tripId: string;
   participants: Participant[];
   batch: number;
+  currentStatus: TripStatus;
   onDone: () => void;
 }) {
   const [text, setText] = useState("");
@@ -26,10 +28,11 @@ export function AddLateExpenses({
   const [status, setStatus] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Existing participant names for context
   const existingNames = participants.map((p) => p.name);
+  const needsResettle =
+    currentStatus === "settled" || currentStatus === "coordinating";
 
-  const handleExtractAndResettle = async () => {
+  const handleExtract = async () => {
     if (!text.trim()) return;
 
     setLoading(true);
@@ -62,13 +65,10 @@ export function AddLateExpenses({
       }
 
       setStatus(
-        `Found ${result.expenses.length} new expense(s). Saving and recalculating...`
+        `Found ${result.expenses.length} new expense(s). Saving${needsResettle ? " and recalculating" : ""}...`
       );
 
-      // Merge participant names
-      const allNames = [
-        ...new Set([...existingNames, ...result.participants]),
-      ];
+      const allNames = [...new Set([...existingNames, ...result.participants])];
 
       startTransition(async () => {
         await saveExtractedExpenses(
@@ -80,10 +80,16 @@ export function AddLateExpenses({
           result.currency,
           batch
         );
-        // Recalculate settlement with new expenses
-        await createSettlement(tripId);
-        // Go back to coordinating
-        await updateTripStatus(tripId, "coordinating");
+
+        if (needsResettle) {
+          await createSettlement(tripId);
+          await updateTripStatus(tripId, "coordinating");
+        } else {
+          // Stay on current step — saveExtractedExpenses sets status to "reviewing"
+          // so we need to restore it if we were already reviewing
+          await updateTripStatus(tripId, currentStatus);
+        }
+
         onDone();
       });
     } catch {
@@ -100,8 +106,10 @@ export function AddLateExpenses({
       <CardHeader>
         <CardTitle>Add Late Expense</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Paste the new expense message. Already-confirmed payments will be
-          preserved and the settlement will be recalculated.
+          Paste the new expense message.
+          {needsResettle
+            ? " Already-confirmed payments will be preserved and the settlement will be recalculated."
+            : " The expenses will be added to the review list."}
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -126,11 +134,15 @@ export function AddLateExpenses({
         )}
 
         <Button
-          onClick={handleExtractAndResettle}
+          onClick={handleExtract}
           disabled={!text.trim() || busy}
           className="w-full"
         >
-          {busy ? "Processing..." : "Add & Recalculate Settlement"}
+          {busy
+            ? "Processing..."
+            : needsResettle
+              ? "Add & Recalculate Settlement"
+              : "Add Expenses"}
         </Button>
       </CardContent>
     </Card>

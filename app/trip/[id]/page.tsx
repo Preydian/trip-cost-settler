@@ -9,6 +9,7 @@ import type {
   ExpenseWithDetails,
   PaymentWithNames,
   Settlement,
+  RawInput,
 } from "@/lib/types";
 
 async function loadTripData(tripId: string) {
@@ -41,6 +42,12 @@ async function loadTripData(tripId: string) {
     .order("batch", { ascending: false })
     .limit(1);
 
+  const { data: rawInputs } = await supabase
+    .from("raw_inputs")
+    .select("*")
+    .eq("trip_id", tripId)
+    .order("batch");
+
   let payments: PaymentWithNames[] = [];
 
   if (settlements && settlements.length > 0) {
@@ -57,6 +64,7 @@ async function loadTripData(tripId: string) {
     trip: trip as Trip,
     participants: (participants ?? []) as Participant[],
     expenses: (expenses ?? []) as ExpenseWithDetails[],
+    rawInputs: (rawInputs ?? []) as RawInput[],
     latestSettlement: (settlements?.[0] ?? null) as Settlement | null,
     payments,
   };
@@ -72,7 +80,7 @@ export default async function TripPage({
 
   if (!data) notFound();
 
-  const { trip, participants, expenses, latestSettlement, payments } = data;
+  const { trip, participants, expenses, rawInputs, latestSettlement, payments } = data;
   const currentBatch = latestSettlement ? latestSettlement.batch + 1 : 1;
 
   return (
@@ -92,6 +100,7 @@ export default async function TripPage({
         trip={trip}
         participants={participants}
         expenses={expenses}
+        rawTexts={rawInputs.map((r) => r.raw_text)}
         payments={payments}
         currentBatch={currentBatch}
       />

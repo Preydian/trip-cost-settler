@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { PlusIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { TripStepper } from "@/components/trip-stepper";
 import { ParseExpensesForm } from "@/components/parse-expenses-form";
 import { ParseSummary } from "@/components/parse-summary";
 import { ExpenseReviewList } from "@/components/expense-review-list";
 import { SettlementSummary } from "@/components/settlement-summary";
 import { PaymentTracker } from "@/components/payment-tracker";
+import { AddLateExpenses } from "@/components/add-late-expenses";
 import type {
   Trip,
   Participant,
@@ -25,18 +29,22 @@ export function TripContent({
   trip,
   participants,
   expenses,
+  rawTexts,
   payments,
   currentBatch,
 }: {
   trip: Trip;
   participants: Participant[];
   expenses: ExpenseWithDetails[];
+  rawTexts: string[];
   payments: PaymentWithNames[];
   currentBatch: number;
 }) {
   const [viewingStatus, setViewingStatus] = useState(trip.status);
+  const [showLateExpenses, setShowLateExpenses] = useState(false);
 
   const readOnly = ORDER[viewingStatus] < ORDER[trip.status];
+  const pastParsing = ORDER[trip.status] > 0;
 
   return (
     <>
@@ -53,6 +61,7 @@ export function TripContent({
               expenses={expenses}
               participants={participants}
               currency={trip.currency}
+              rawTexts={rawTexts}
             />
           ) : (
             <ParseExpensesForm tripId={trip.id} batch={currentBatch} />
@@ -83,12 +92,44 @@ export function TripContent({
         {viewingStatus === "coordinating" && (
           <PaymentTracker
             tripId={trip.id}
-            participants={participants}
             payments={payments}
             currency={trip.currency}
-            currentBatch={currentBatch}
             readOnly={readOnly}
           />
+        )}
+
+        {pastParsing && (
+          <>
+            <Separator className="my-6" />
+
+            {showLateExpenses ? (
+              <div className="space-y-3">
+                <AddLateExpenses
+                  tripId={trip.id}
+                  participants={participants}
+                  batch={currentBatch}
+                  currentStatus={trip.status}
+                  onDone={() => setShowLateExpenses(false)}
+                />
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowLateExpenses(false)}
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => setShowLateExpenses(true)}
+                className="w-full"
+              >
+                <PlusIcon className="size-4" />
+                Add Late Expense
+              </Button>
+            )}
+          </>
         )}
       </div>
     </>

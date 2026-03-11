@@ -36,6 +36,14 @@ export function ExpenseCard({
     ? "All"
     : expense.splits.map((s) => s.participant.name).join(", ");
 
+  const resetForm = () => {
+    setDescription(expense.description);
+    setAmount(String(expense.amount));
+    setPaidById(expense.paid_by_id);
+    setSplitAmongIds(expense.splits.map((s) => s.participant_id));
+    setEditing(false);
+  };
+
   const toggleSplitParticipant = (id: string) => {
     setSplitAmongIds((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
@@ -133,7 +141,7 @@ export function ExpenseCard({
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => setEditing(false)}
+              onClick={resetForm}
               disabled={isPending}
             >
               <X className="size-3.5" />

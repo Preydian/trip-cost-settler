@@ -10,11 +10,11 @@ import { deleteTrip } from "@/actions/trips";
 import type { TripSummary } from "@/actions/trips";
 import type { TripStatus } from "@/lib/types";
 
-const STAGE_CONFIG: Record<TripStatus, { label: string; variant: "default" | "secondary" | "outline" }> = {
-  parsing: { label: "Paste expenses", variant: "secondary" },
-  reviewing: { label: "Review", variant: "outline" },
-  settled: { label: "Settled", variant: "default" },
-  coordinating: { label: "Payments", variant: "outline" },
+const STAGE_LABELS: Record<TripStatus, string> = {
+  parsing: "Paste",
+  reviewing: "Review",
+  settled: "Settle",
+  coordinating: "Track",
 };
 
 function formatCurrency(amount: number, currency: string) {
@@ -72,7 +72,7 @@ function StageDetail({ trip }: { trip: TripSummary }) {
 
 function TripCard({ trip }: { trip: TripSummary }) {
   const [isPending, startTransition] = useTransition();
-  const stage = STAGE_CONFIG[trip.status];
+  const stageLabel = STAGE_LABELS[trip.status];
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -102,7 +102,7 @@ function TripCard({ trip }: { trip: TripSummary }) {
       </div>
 
       <div className="mt-2">
-        <Badge variant={stage.variant}>{stage.label}</Badge>
+        <Badge className="bg-foreground text-background">{stageLabel}</Badge>
       </div>
 
       <div className="mt-auto pt-3 flex items-center gap-3">

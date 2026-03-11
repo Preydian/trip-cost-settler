@@ -34,11 +34,10 @@ export default async function HomePage() {
       <div className="mx-auto max-w-2xl">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Your Trips</h1>
-          <AccountMenu email={user.email ?? "User"} />
-        </div>
-
-        <div className="mt-6">
-          <CreateTripForm />
+          <div className="flex items-center gap-3">
+            <CreateTripForm />
+            <AccountMenu email={user.email ?? "User"} />
+          </div>
         </div>
 
         <div className="mt-6">

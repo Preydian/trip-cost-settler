@@ -13,36 +13,60 @@ export function ParseSummary({
   expenses,
   participants,
   currency,
+  rawTexts,
 }: {
   expenses: ExpenseWithDetails[];
   participants: Participant[];
   currency: string;
+  rawTexts: string[];
 }) {
   const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Expenses Extracted</CardTitle>
-        <CardDescription>
-          {expenses.length} expense{expenses.length !== 1 ? "s" : ""} totalling{" "}
-          {formatCurrency(total, currency)} were parsed from the pasted messages.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div>
-          <span className="text-xs font-medium text-muted-foreground">
-            Participants
-          </span>
-          <div className="mt-1 flex flex-wrap gap-1">
-            {participants.map((p) => (
-              <Badge key={p.id} variant="secondary">
-                {p.name}
-              </Badge>
-            ))}
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Expenses Extracted</CardTitle>
+          <CardDescription>
+            {expenses.length} expense{expenses.length !== 1 ? "s" : ""} totalling{" "}
+            {formatCurrency(total, currency)} were parsed from the pasted messages.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <span className="text-xs font-medium text-muted-foreground">
+              Participants
+            </span>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {participants.map((p) => (
+                <Badge key={p.id} variant="secondary">
+                  {p.name}
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {rawTexts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Original Messages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-64 overflow-y-auto">
+              {rawTexts.map((text, i) => (
+                <pre
+                  key={i}
+                  className="whitespace-pre-wrap font-mono text-xs text-muted-foreground"
+                >
+                  {text}
+                </pre>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

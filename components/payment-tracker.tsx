@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import {
   Card,
   CardContent,
@@ -10,31 +10,24 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { confirmPayment } from "@/actions/settlements";
 import { formatCurrency } from "@/lib/settlement";
-import { AddLateExpenses } from "@/components/add-late-expenses";
 import { ShareSummary } from "@/components/share-summary";
 import { ArrowRight, Check, Clock } from "lucide-react";
-import type { Participant, PaymentWithNames } from "@/lib/types";
+import type { PaymentWithNames } from "@/lib/types";
 
 export function PaymentTracker({
   tripId,
-  participants,
   payments,
   currency,
-  currentBatch,
   readOnly = false,
 }: {
   tripId: string;
-  participants: Participant[];
   payments: PaymentWithNames[];
   currency: string;
-  currentBatch: number;
   readOnly?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
-  const [showLateExpenses, setShowLateExpenses] = useState(false);
 
   const activePayments = payments.filter((p) => p.status === "pending");
   const confirmedPayments = payments.filter((p) => p.status === "confirmed");
@@ -134,32 +127,11 @@ export function PaymentTracker({
       )}
 
       {!readOnly && (
-        <>
-          <Separator />
-
-          <div className="flex gap-2">
-            <ShareSummary
-              payments={payments}
-              currency={currency}
-              allDone={allDone}
-            />
-            <Button
-              variant="outline"
-              onClick={() => setShowLateExpenses(!showLateExpenses)}
-            >
-              {showLateExpenses ? "Cancel" : "Add Late Expense"}
-            </Button>
-          </div>
-
-          {showLateExpenses && (
-            <AddLateExpenses
-              tripId={tripId}
-              participants={participants}
-              batch={currentBatch}
-              onDone={() => setShowLateExpenses(false)}
-            />
-          )}
-        </>
+        <ShareSummary
+          payments={payments}
+          currency={currency}
+          allDone={allDone}
+        />
       )}
     </div>
   );
