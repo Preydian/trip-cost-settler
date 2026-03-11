@@ -52,13 +52,29 @@ async function loadTripData(tripId: string) {
   let payments: PaymentWithNames[] = [];
 
   if (settlements && settlements.length > 0) {
-    const { data: latestPayments } = await supabase
-      .from("payments")
-      .select("*, from:participants!from_id(*), to:participants!to_id(*)")
-      .eq("settlement_id", settlements[0].id)
-      .order("amount", { ascending: false });
+    // Get all settlement IDs for this trip
+    const { data: allSettlements } = await supabase
+      .from("settlements")
+      .select("id")
+      .eq("trip_id", tripId);
 
-    payments = (latestPayments ?? []) as PaymentWithNames[];
+    const allSettlementIds = (allSettlements ?? []).map((s) => s.id);
+
+    if (allSettlementIds.length > 0) {
+      // Fetch current batch payments (pending + confirmed) and confirmed from older batches
+      const { data: allPayments } = await supabase
+        .from("payments")
+        .select("*, from:participants!from_id(*), to:participants!to_id(*), settlement:settlements!settlement_id(batch, created_at)")
+        .in("settlement_id", allSettlementIds)
+        .in("status", ["pending", "confirmed"])
+        .order("amount", { ascending: false });
+
+      payments = (allPayments ?? []).map((p: Record<string, unknown>) => ({
+        ...p,
+        settlement_batch: (p.settlement as { batch: number; created_at: string }).batch,
+        settlement_date: (p.settlement as { batch: number; created_at: string }).created_at,
+      })) as PaymentWithNames[];
+    }
   }
 
   return {

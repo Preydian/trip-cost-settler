@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, FileTextIcon, PencilLineIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { TripStepper } from "@/components/trip-stepper";
@@ -11,6 +11,7 @@ import { ExpenseReviewList } from "@/components/expense-review-list";
 import { SettlementSummary } from "@/components/settlement-summary";
 import { PaymentTracker } from "@/components/payment-tracker";
 import { AddLateExpenses } from "@/components/add-late-expenses";
+import { AddSingleExpense } from "@/components/add-single-expense";
 import type {
   Trip,
   Participant,
@@ -43,7 +44,7 @@ export function TripContent({
   isOwner?: boolean;
 }) {
   const [viewingStatus, setViewingStatus] = useState(trip.status);
-  const [showLateExpenses, setShowLateExpenses] = useState(false);
+  const [lateExpenseMode, setLateExpenseMode] = useState<"none" | "bulk" | "single">("none");
 
   const readOnly = !isOwner || ORDER[viewingStatus] < ORDER[trip.status];
   const pastParsing = ORDER[trip.status] > 0;
@@ -104,32 +105,53 @@ export function TripContent({
           <>
             <Separator className="my-6" />
 
-            {showLateExpenses ? (
+            {lateExpenseMode !== "none" ? (
               <div className="space-y-3">
-                <AddLateExpenses
-                  tripId={trip.id}
-                  participants={participants}
-                  batch={currentBatch}
-                  currentStatus={trip.status}
-                  onDone={() => setShowLateExpenses(false)}
-                />
+                {lateExpenseMode === "bulk" && (
+                  <AddLateExpenses
+                    tripId={trip.id}
+                    participants={participants}
+                    batch={currentBatch}
+                    currentStatus={trip.status}
+                    onDone={() => setLateExpenseMode("none")}
+                  />
+                )}
+                {lateExpenseMode === "single" && (
+                  <AddSingleExpense
+                    tripId={trip.id}
+                    participants={participants}
+                    batch={currentBatch}
+                    currentStatus={trip.status}
+                    onDone={() => setLateExpenseMode("none")}
+                  />
+                )}
                 <Button
                   variant="ghost"
-                  onClick={() => setShowLateExpenses(false)}
+                  onClick={() => setLateExpenseMode("none")}
                   className="w-full"
                 >
                   Cancel
                 </Button>
               </div>
             ) : (
-              <Button
-                variant="outline"
-                onClick={() => setShowLateExpenses(true)}
-                className="w-full"
-              >
-                <PlusIcon className="size-4" />
-                Add Late Expense
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setLateExpenseMode("bulk")}
+                  className="flex-1"
+                >
+                  <FileTextIcon className="size-4" />
+                  Bulk Expense
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setLateExpenseMode("single")}
+                  className="flex-1"
+                >
+                  <PencilLineIcon className="size-4" />
+                  Single Expense
+                </Button>
+              </div>
             )}
           </>
         )}

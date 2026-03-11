@@ -65,6 +65,8 @@ export interface Payment {
 export interface PaymentWithNames extends Payment {
   from: Participant;
   to: Participant;
+  settlement_batch: number;
+  settlement_date: string;
 }
 
 export interface ExtractedExpense {
