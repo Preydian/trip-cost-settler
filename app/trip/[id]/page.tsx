@@ -77,15 +77,15 @@ export default async function TripPage({
 
   return (
     <div className="mx-auto min-h-screen max-w-3xl px-4 py-8">
-      <div className="mb-4">
+      <div className="mb-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeftIcon className="size-3.5" />
           Dashboard
         </Link>
-        <h1 className="mt-1 text-2xl font-bold">{trip.name}</h1>
+        <h1 className="mt-2 text-2xl font-bold">{trip.name}</h1>
       </div>
 
       <TripContent

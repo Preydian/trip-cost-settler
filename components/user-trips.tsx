@@ -89,11 +89,11 @@ function TripCard({ trip }: { trip: TripSummary }) {
       className="group flex flex-col justify-between rounded-lg border p-4 transition-colors hover:bg-muted"
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="truncate font-medium">{trip.name}</span>
+        <span className="truncate font-medium leading-6">{trip.name}</span>
         <Button
           variant="ghost"
           size="sm"
-          className="size-7 shrink-0 p-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+          className="-mr-1.5 -mt-1.5 size-7 shrink-0 p-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
           onClick={handleDelete}
           disabled={isPending}
         >
@@ -101,11 +101,11 @@ function TripCard({ trip }: { trip: TripSummary }) {
         </Button>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-2">
         <Badge variant={stage.variant}>{stage.label}</Badge>
       </div>
 
-      <div className="mt-3 flex items-center gap-3">
+      <div className="mt-auto pt-3 flex items-center gap-3">
         {trip.participant_count > 0 && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <UsersIcon className="size-3" />
@@ -115,7 +115,7 @@ function TripCard({ trip }: { trip: TripSummary }) {
         <StageDetail trip={trip} />
       </div>
 
-      <div className="mt-3 border-t pt-2">
+      <div className="mt-2 border-t pt-2">
         <span className="text-xs text-muted-foreground" suppressHydrationWarning>
           {formatDistanceToNow(new Date(trip.updated_at), { addSuffix: true })}
         </span>

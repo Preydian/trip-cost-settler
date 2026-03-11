@@ -30,7 +30,7 @@ export default async function HomePage() {
   const trips = await getUserTripsWithSummary();
 
   return (
-    <div className="min-h-screen px-4 py-6">
+    <div className="min-h-screen px-4 py-8">
       <div className="mx-auto max-w-2xl">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Your Trips</h1>
@@ -41,7 +41,7 @@ export default async function HomePage() {
           <CreateTripForm />
         </div>
 
-        <div className="mt-8">
+        <div className="mt-6">
           <UserTrips trips={trips} />
         </div>
       </div>

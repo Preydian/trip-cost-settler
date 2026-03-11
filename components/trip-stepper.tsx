@@ -30,7 +30,7 @@ export function TripStepper({
   const viewingIdx = ORDER[viewingStatus];
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       {STEPS.map((step, i) => {
         const isViewing = i === viewingIdx;
         const isDone = i < currentIdx;

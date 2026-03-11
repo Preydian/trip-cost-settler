@@ -67,7 +67,7 @@ export function AuthForm() {
             No account?{" "}
             <button
               type="button"
-              className="underline hover:text-foreground"
+              className="cursor-pointer underline hover:text-foreground"
               onClick={() => { setMode("signup"); setError(null); }}
             >
               Sign up
@@ -78,7 +78,7 @@ export function AuthForm() {
             Have an account?{" "}
             <button
               type="button"
-              className="underline hover:text-foreground"
+              className="cursor-pointer underline hover:text-foreground"
               onClick={() => { setMode("signin"); setError(null); }}
             >
               Sign in

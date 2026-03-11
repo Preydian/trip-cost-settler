@@ -104,35 +104,46 @@ export async function saveExtractedExpenses(
 export async function updateExpense(
   expenseId: string,
   tripId: string,
-  data: { description: string; amount: number; paid_by_id: string }
+  data: {
+    description: string;
+    amount: number;
+    paid_by_id: string;
+    split_among_ids: string[];
+  }
 ) {
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("expenses")
-    .update(data)
+    .update({
+      description: data.description,
+      amount: data.amount,
+      paid_by_id: data.paid_by_id,
+    })
     .eq("id", expenseId);
 
   if (error) throw new Error(error.message);
 
-  // Recalculate splits for this expense
-  const { data: splits } = await supabase
+  // Delete existing splits and recreate with new participants
+  await supabase
     .from("expense_splits")
-    .select("id, participant_id")
+    .delete()
     .eq("expense_id", expenseId);
 
-  if (splits && splits.length > 0) {
+  const splitParticipantIds = data.split_among_ids;
+  if (splitParticipantIds.length > 0) {
     const splitAmount =
-      Math.round((data.amount / splits.length) * 100) / 100;
-    const totalSplit = splitAmount * splits.length;
+      Math.round((data.amount / splitParticipantIds.length) * 100) / 100;
+    const totalSplit = splitAmount * splitParticipantIds.length;
     const remainder = Math.round((data.amount - totalSplit) * 100) / 100;
 
-    for (let i = 0; i < splits.length; i++) {
-      await supabase
-        .from("expense_splits")
-        .update({ amount: i === 0 ? splitAmount + remainder : splitAmount })
-        .eq("id", splits[i].id);
-    }
+    const splitRows = splitParticipantIds.map((pid, i) => ({
+      expense_id: expenseId,
+      participant_id: pid,
+      amount: i === 0 ? splitAmount + remainder : splitAmount,
+    }));
+
+    await supabase.from("expense_splits").insert(splitRows);
   }
 
   revalidatePath(`/trip/${tripId}`);

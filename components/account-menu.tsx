@@ -26,7 +26,7 @@ export function AccountMenu({ email }: { email: string }) {
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="bottom" sideOffset={8}>
+      <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-auto min-w-48">
         <DropdownMenuGroup>
           <DropdownMenuLabel>{email}</DropdownMenuLabel>
         </DropdownMenuGroup>

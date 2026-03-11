@@ -26,16 +26,35 @@ export function ExpenseCard({
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(String(expense.amount));
   const [paidById, setPaidById] = useState(expense.paid_by_id);
+  const [splitAmongIds, setSplitAmongIds] = useState<string[]>(
+    expense.splits.map((s) => s.participant_id)
+  );
   const [isPending, startTransition] = useTransition();
 
-  const splitNames = expense.splits.map((s) => s.participant.name).join(", ");
+  const isAllParticipants = expense.splits.length === participants.length;
+  const splitLabel = isAllParticipants
+    ? "All"
+    : expense.splits.map((s) => s.participant.name).join(", ");
+
+  const toggleSplitParticipant = (id: string) => {
+    setSplitAmongIds((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+    );
+  };
+
+  const allSelected = splitAmongIds.length === participants.length;
+  const toggleAll = () => {
+    setSplitAmongIds(allSelected ? [] : participants.map((p) => p.id));
+  };
 
   const handleSave = () => {
+    if (splitAmongIds.length === 0) return;
     startTransition(async () => {
       await updateExpense(expense.id, tripId, {
         description,
         amount: parseFloat(amount),
         paid_by_id: paidById,
+        split_among_ids: splitAmongIds,
       });
       setEditing(false);
     });
@@ -75,8 +94,39 @@ export function ExpenseCard({
               ))}
             </select>
           </div>
+          <div>
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Split among</span>
+              <button
+                type="button"
+                className="cursor-pointer text-xs text-primary hover:underline"
+                onClick={toggleAll}
+              >
+                {allSelected ? "Clear" : "All"}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {participants.map((p) => {
+                const selected = splitAmongIds.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => toggleSplitParticipant(p.id)}
+                    className={`cursor-pointer rounded-md border px-2 py-0.5 text-xs font-medium transition-colors ${
+                      selected
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-foreground/30"
+                    }`}
+                  >
+                    {p.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div className="flex gap-1">
-            <Button size="sm" onClick={handleSave} disabled={isPending}>
+            <Button size="sm" onClick={handleSave} disabled={isPending || splitAmongIds.length === 0}>
               <Check className="size-3.5" />
               Save
             </Button>
@@ -109,7 +159,7 @@ export function ExpenseCard({
             <div className="text-xs text-muted-foreground">
               Paid by{" "}
               <span className="font-medium">{expense.paid_by.name}</span>
-              {splitNames && <> &middot; Split: {splitNames}</>}
+              {splitLabel && <> &middot; Split: {splitLabel}</>}
             </div>
           </div>
           {!readOnly && (
