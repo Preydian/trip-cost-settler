@@ -1,42 +1,90 @@
-export type JobStatus = "saved" | "applied" | "interviewing" | "offer" | "rejected";
+export type TripStatus = "parsing" | "reviewing" | "settled" | "coordinating";
 
-export interface Job {
+export interface Trip {
   id: string;
-  user_id: string;
-  source_url: string;
-  job_role: string;
-  company_name: string;
-  experience_years: string | null;
-  location: string | null;
-  date_posted: string | null;
-  salary_min: number | null;
-  salary_max: number | null;
-  salary_currency: string;
-  description_summary: string | null;
-  required_skills: string[] | null;
-  status: JobStatus;
-  notes: string | null;
-  applied_at: string | null;
+  name: string;
+  currency: string;
+  status: TripStatus;
   created_at: string;
   updated_at: string;
 }
 
-export interface ExtractedJob {
-  job_role: string;
-  company_name: string;
-  experience_years: string | null;
-  location: string | null;
-  date_posted: string | null;
-  salary_min: number | null;
-  salary_max: number | null;
-  description_summary: string | null;
-  required_skills: string[];
+export interface Participant {
+  id: string;
+  trip_id: string;
+  name: string;
+  created_at: string;
 }
 
-export interface Profile {
+export type SplitMode = "equal" | "custom";
+
+export interface Expense {
   id: string;
-  email: string;
-  full_name: string | null;
-  avatar_url: string | null;
+  trip_id: string;
+  paid_by_id: string;
+  description: string;
+  amount: number;
+  split_mode: SplitMode;
+  batch: number;
+  created_at: string;
+}
+
+export interface ExpenseSplit {
+  id: string;
+  expense_id: string;
+  participant_id: string;
+  amount: number;
+}
+
+export interface ExpenseWithDetails extends Expense {
+  paid_by: Participant;
+  splits: (ExpenseSplit & { participant: Participant })[];
+}
+
+export interface Settlement {
+  id: string;
+  trip_id: string;
+  batch: number;
+  created_at: string;
+}
+
+export type PaymentStatus = "pending" | "confirmed" | "cancelled";
+
+export interface Payment {
+  id: string;
+  settlement_id: string;
+  from_id: string;
+  to_id: string;
+  amount: number;
+  status: PaymentStatus;
+  confirmed_at: string | null;
+  created_at: string;
+}
+
+export interface PaymentWithNames extends Payment {
+  from: Participant;
+  to: Participant;
+}
+
+export interface ExtractedExpense {
+  paid_by: string;
+  description: string;
+  amount: number;
+  split_among: string[] | null;
+}
+
+export interface ExtractionResult {
+  expenses: ExtractedExpense[];
+  participants: string[];
+  currency: string;
+  notes: string | null;
+}
+
+export interface RawInput {
+  id: string;
+  trip_id: string;
+  raw_text: string;
+  ai_result: ExtractionResult | null;
+  batch: number;
   created_at: string;
 }

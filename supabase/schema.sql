@@ -1,97 +1,101 @@
--- Run this in the Supabase SQL Editor to set up the database schema.
+-- Trip Cost Settler schema
+-- Run this in the Supabase SQL Editor to set up the database.
 
--- 1. Profiles table (auto-created on first sign-in via trigger)
-CREATE TABLE public.profiles (
-  id          uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email       text,
-  full_name   text,
-  avatar_url  text,
+-- 1. Trips
+CREATE TABLE public.trips (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        text NOT NULL,
+  currency    text NOT NULL DEFAULT 'USD',
+  status      text NOT NULL DEFAULT 'parsing'
+                CHECK (status IN ('parsing','reviewing','settled','coordinating')),
+  created_at  timestamptz DEFAULT now(),
+  updated_at  timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.trips ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to trips" ON public.trips FOR ALL TO anon USING (true) WITH CHECK (true);
+
+-- 2. Participants
+CREATE TABLE public.participants (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trip_id     uuid NOT NULL REFERENCES public.trips(id) ON DELETE CASCADE,
+  name        text NOT NULL,
+  created_at  timestamptz DEFAULT now(),
+  UNIQUE(trip_id, name)
+);
+
+ALTER TABLE public.participants ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to participants" ON public.participants FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE INDEX idx_participants_trip ON public.participants(trip_id);
+
+-- 3. Expenses
+CREATE TABLE public.expenses (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trip_id     uuid NOT NULL REFERENCES public.trips(id) ON DELETE CASCADE,
+  paid_by_id  uuid NOT NULL REFERENCES public.participants(id),
+  description text NOT NULL,
+  amount      numeric(10,2) NOT NULL CHECK (amount > 0),
+  split_mode  text NOT NULL DEFAULT 'equal'
+                CHECK (split_mode IN ('equal','custom')),
+  batch       int NOT NULL DEFAULT 1,
   created_at  timestamptz DEFAULT now()
 );
 
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to expenses" ON public.expenses FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE INDEX idx_expenses_trip ON public.expenses(trip_id);
 
-CREATE POLICY "Users can view own profile"
-  ON public.profiles FOR SELECT
-  TO authenticated
-  USING ((SELECT auth.uid()) = id);
-
-CREATE POLICY "Users can update own profile"
-  ON public.profiles FOR UPDATE
-  TO authenticated
-  USING ((SELECT auth.uid()) = id)
-  WITH CHECK ((SELECT auth.uid()) = id);
-
-CREATE POLICY "Users can insert own profile"
-  ON public.profiles FOR INSERT
-  TO authenticated
-  WITH CHECK ((SELECT auth.uid()) = id);
-
--- Trigger: auto-insert profile row on signup
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, full_name, avatar_url)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    NEW.raw_user_meta_data->>'full_name',
-    NEW.raw_user_meta_data->>'avatar_url'
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- 2. Jobs table (core table)
-CREATE TABLE public.jobs (
+-- 4. Expense splits (who owes what share of each expense)
+CREATE TABLE public.expense_splits (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  source_url      text NOT NULL,
-  job_role        text NOT NULL,
-  company_name    text NOT NULL,
-  experience_years text,
-  location        text,
-  date_posted     date,
-  salary_min      integer,
-  salary_max      integer,
-  salary_currency text DEFAULT 'USD',
-  description_summary text,
-  required_skills text[],
-  status          text NOT NULL DEFAULT 'saved'
-                    CHECK (status IN ('saved','applied','interviewing','offer','rejected')),
-  notes           text,
-  applied_at      timestamptz,
-  created_at      timestamptz DEFAULT now(),
-  updated_at      timestamptz DEFAULT now()
+  expense_id      uuid NOT NULL REFERENCES public.expenses(id) ON DELETE CASCADE,
+  participant_id  uuid NOT NULL REFERENCES public.participants(id),
+  amount          numeric(10,2) NOT NULL,
+  UNIQUE(expense_id, participant_id)
 );
 
-ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.expense_splits ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to expense_splits" ON public.expense_splits FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE INDEX idx_splits_expense ON public.expense_splits(expense_id);
 
-CREATE POLICY "Users can view own jobs"
-  ON public.jobs FOR SELECT
-  TO authenticated
-  USING ((SELECT auth.uid()) = user_id);
+-- 5. Settlements (a snapshot of computed payments)
+CREATE TABLE public.settlements (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trip_id     uuid NOT NULL REFERENCES public.trips(id) ON DELETE CASCADE,
+  batch       int NOT NULL DEFAULT 1,
+  created_at  timestamptz DEFAULT now(),
+  UNIQUE(trip_id, batch)
+);
 
-CREATE POLICY "Users can insert own jobs"
-  ON public.jobs FOR INSERT
-  TO authenticated
-  WITH CHECK ((SELECT auth.uid()) = user_id);
+ALTER TABLE public.settlements ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to settlements" ON public.settlements FOR ALL TO anon USING (true) WITH CHECK (true);
 
-CREATE POLICY "Users can update own jobs"
-  ON public.jobs FOR UPDATE
-  TO authenticated
-  USING ((SELECT auth.uid()) = user_id)
-  WITH CHECK ((SELECT auth.uid()) = user_id);
+-- 6. Payments (directed payment instructions within a settlement)
+CREATE TABLE public.payments (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  settlement_id   uuid NOT NULL REFERENCES public.settlements(id) ON DELETE CASCADE,
+  from_id         uuid NOT NULL REFERENCES public.participants(id),
+  to_id           uuid NOT NULL REFERENCES public.participants(id),
+  amount          numeric(10,2) NOT NULL CHECK (amount > 0),
+  status          text NOT NULL DEFAULT 'pending'
+                    CHECK (status IN ('pending','confirmed','cancelled')),
+  confirmed_at    timestamptz,
+  created_at      timestamptz DEFAULT now()
+);
 
-CREATE POLICY "Users can delete own jobs"
-  ON public.jobs FOR DELETE
-  TO authenticated
-  USING ((SELECT auth.uid()) = user_id);
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to payments" ON public.payments FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE INDEX idx_payments_settlement ON public.payments(settlement_id);
 
--- Indexes for dashboard queries
-CREATE INDEX idx_jobs_user_status ON public.jobs (user_id, status);
-CREATE INDEX idx_jobs_user_created ON public.jobs (user_id, created_at DESC);
+-- 7. Raw inputs (audit trail of pasted text + AI results)
+CREATE TABLE public.raw_inputs (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trip_id     uuid NOT NULL REFERENCES public.trips(id) ON DELETE CASCADE,
+  raw_text    text NOT NULL,
+  ai_result   jsonb,
+  batch       int NOT NULL DEFAULT 1,
+  created_at  timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.raw_inputs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access to raw_inputs" ON public.raw_inputs FOR ALL TO anon USING (true) WITH CHECK (true);

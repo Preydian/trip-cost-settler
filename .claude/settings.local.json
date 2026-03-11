@@ -18,7 +18,10 @@
       "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -f components/google-sign-in-button.tsx components/navbar.tsx components/job-card.tsx components/job-status-badge.tsx components/job-notes.tsx components/status-select.tsx components/delete-job-button.tsx components/empty-state.tsx)",
       "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -rf .next && npm run build 2>&1)",
       "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && npx next build 2>&1)",
-      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && npx tsc --noEmit 2>&1)"
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && npx tsc --noEmit 2>&1)",
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && pnpm install 2>&1 | tail -10)",
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -rf .next && npx tsc --noEmit 2>&1)",
+      "Bash(cd \"C:/Users/Raith/Documents/Code/trip-cost-settler\" && rm -rf .next && npx next build 2>&1)"
     ]
   }
 }

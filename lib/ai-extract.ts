@@ -1,22 +1,23 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { z } from "zod";
-import type { ExtractedJob } from "./types";
+import type { ExtractionResult } from "./types";
 
 const extractionSchema = z.object({
-  job_role: z.string(),
-  company_name: z.string(),
-  experience_years: z.string().nullable(),
-  location: z.string().nullable(),
-  date_posted: z.string().nullable(),
-  salary_min: z.number().nullable(),
-  salary_max: z.number().nullable(),
-  description_summary: z.string().nullable(),
-  required_skills: z.array(z.string()),
+  expenses: z.array(
+    z.object({
+      paid_by: z.string(),
+      description: z.string(),
+      amount: z.number().positive(),
+      split_among: z.array(z.string()).nullable(),
+    })
+  ),
+  participants: z.array(z.string()),
+  currency: z.string(),
+  notes: z.string().nullable(),
 });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-// Models to try in order of preference (based on available free-tier quota)
 const MODELS = [
   "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
@@ -24,26 +25,42 @@ const MODELS = [
   "gemini-3-flash",
 ];
 
-const prompt = (pageContent: string, today: string) => `Extract job posting information from the following webpage content.
-Today's date is ${today}.
+const buildPrompt = (messageText: string) =>
+  `Extract expense information from the following group trip messages.
+People are reporting what they paid during a trip. The text may be messy,
+informal, use slang, abbreviations, or multiple languages.
 
 Return a JSON object with these exact keys:
-- job_role (string): the job title
-- company_name (string): the hiring company
-- experience_years (string or null): e.g. "3-5", "5+", "Entry level"
-- location (string or null): city/state/country or "Remote"
-- date_posted (string or null): ISO date YYYY-MM-DD. If the page says something like "Posted 5d ago" or "Posted 2 weeks ago", calculate the actual date using today's date.
-- salary_min (number or null): annual salary lower bound in USD (whole dollars)
-- salary_max (number or null): annual salary upper bound in USD (whole dollars)
-- description_summary (string): 2-3 sentence summary of the role
-- required_skills (string[]): list of key technical skills/requirements
+- expenses (array): each item has:
+  - paid_by (string): the person who paid. Use their most common name form.
+  - description (string): brief description of what was paid for
+  - amount (number): the amount paid, as a positive number
+  - split_among (string[] or null): if the message specifies who this expense
+    is split among, list those names. If it's for everyone or not specified,
+    use null.
+- participants (string[]): list of ALL unique people mentioned (payers and
+  those in split_among). Normalize names: if "Dave" and "David" appear to be
+  the same person, pick one form and use it consistently.
+- currency (string): the primary currency detected (e.g. "USD", "EUR", "AUD").
+  If mixed currencies appear, note this. Default to "USD" if unclear.
+- notes (string or null): any observations about ambiguity, unclear amounts,
+  or things the organiser should double-check.
 
-If a field cannot be determined from the content, use null.
+Rules:
+- If someone says "I paid $50 for dinner for me and Sarah", that's one expense
+  of $50 paid by that person, split among that person and Sarah.
+- If amounts include tax/tip already, treat them as-is.
+- If someone lists multiple items, create separate expense entries.
+- Ignore messages that don't contain expense information.
+- If a message is ambiguous about the amount, include it with your best guess
+  and mention the ambiguity in notes.
 
-Webpage content:
-${pageContent}`;
+Messages:
+${messageText}`;
 
-export async function extractJobInfo(pageContent: string): Promise<ExtractedJob> {
+export async function extractExpenses(
+  messageText: string
+): Promise<ExtractionResult> {
   let lastError: Error | null = null;
 
   for (const modelName of MODELS) {
@@ -55,8 +72,7 @@ export async function extractJobInfo(pageContent: string): Promise<ExtractedJob>
         },
       });
 
-      const today = new Date().toISOString().split("T")[0];
-      const result = await model.generateContent(prompt(pageContent, today));
+      const result = await model.generateContent(buildPrompt(messageText));
       const text = result.response.text();
 
       const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -65,18 +81,20 @@ export async function extractJobInfo(pageContent: string): Promise<ExtractedJob>
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
-      const validated = extractionSchema.parse(parsed);
-
-      return validated;
+      return extractionSchema.parse(parsed);
     } catch (error) {
       lastError = error as Error;
       const msg = lastError.message || "";
-      // Retry with next model on rate limit, overload, or unavailable
-      if (msg.includes("429") || msg.includes("503") || msg.includes("overloaded")) {
-        console.warn(`Model ${modelName} unavailable, trying next fallback...`);
+      if (
+        msg.includes("429") ||
+        msg.includes("503") ||
+        msg.includes("overloaded")
+      ) {
+        console.warn(
+          `Model ${modelName} unavailable, trying next fallback...`
+        );
         continue;
       }
-      // For other errors (bad JSON, validation, auth), don't retry
       throw error;
     }
   }
