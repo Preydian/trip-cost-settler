@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { confirmPayment } from "@/actions/settlements";
 import { formatCurrency } from "@/lib/settlement";
 import { ShareSummary } from "@/components/share-summary";
-import { ArrowRight, Check, Clock } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, Clock } from "lucide-react";
 import type { PaymentWithNames } from "@/lib/types";
 
 const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -96,12 +96,23 @@ export function PaymentTracker({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-foreground transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          {allDone ? (
+            <div className="flex flex-col items-center gap-2 py-4 text-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-emerald-500/15">
+                <CheckCircle2 className="size-6 text-emerald-600" />
+              </div>
+              <p className="text-sm font-medium text-emerald-600">
+                Trip complete
+              </p>
+            </div>
+          ) : (
+            <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-foreground transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 

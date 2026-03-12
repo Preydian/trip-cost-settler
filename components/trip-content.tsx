@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { PlusIcon, FileTextIcon, PencilLineIcon } from "lucide-react";
+import { FileTextIcon, PencilLineIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { TripStepper } from "@/components/trip-stepper";
 import { ParseExpensesForm } from "@/components/parse-expenses-form";
 import { ParseSummary } from "@/components/parse-summary";
@@ -48,6 +55,11 @@ export function TripContent({
 
   const readOnly = !isOwner || ORDER[viewingStatus] < ORDER[trip.status];
   const pastParsing = ORDER[trip.status] > 0;
+  const pendingPayments = payments.filter((p) => p.status === "pending");
+  const isCompleted =
+    trip.status === "coordinating" &&
+    payments.length > 0 &&
+    pendingPayments.length === 0;
 
   return (
     <>
@@ -55,6 +67,7 @@ export function TripContent({
         currentStatus={trip.status}
         viewingStatus={viewingStatus}
         onStepClick={setViewingStatus}
+        isCompleted={isCompleted}
       />
 
       <div className="mt-6">
@@ -105,54 +118,72 @@ export function TripContent({
           <>
             <Separator className="my-6" />
 
-            {lateExpenseMode !== "none" ? (
-              <div className="space-y-3">
-                {lateExpenseMode === "bulk" && (
-                  <AddLateExpenses
-                    tripId={trip.id}
-                    participants={participants}
-                    batch={currentBatch}
-                    currentStatus={trip.status}
-                    onDone={() => setLateExpenseMode("none")}
-                  />
-                )}
-                {lateExpenseMode === "single" && (
-                  <AddSingleExpense
-                    tripId={trip.id}
-                    participants={participants}
-                    batch={currentBatch}
-                    currentStatus={trip.status}
-                    onDone={() => setLateExpenseMode("none")}
-                  />
-                )}
-                <Button
-                  variant="ghost"
-                  onClick={() => setLateExpenseMode("none")}
-                  className="w-full"
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setLateExpenseMode("bulk")}
-                  className="flex-1"
-                >
-                  <FileTextIcon className="size-4" />
-                  Bulk Expense
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setLateExpenseMode("single")}
-                  className="flex-1"
-                >
-                  <PencilLineIcon className="size-4" />
-                  Single Expense
-                </Button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setLateExpenseMode("bulk")}
+                className="flex-1"
+              >
+                <FileTextIcon className="size-4" />
+                Bulk Expense
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setLateExpenseMode("single")}
+                className="flex-1"
+              >
+                <PencilLineIcon className="size-4" />
+                Single Expense
+              </Button>
+            </div>
+
+            <Dialog
+              open={lateExpenseMode === "bulk"}
+              onOpenChange={(open) => { if (!open) setLateExpenseMode("none"); }}
+            >
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add Late Expense</DialogTitle>
+                  <DialogDescription>
+                    Paste the new expense message.
+                    {(trip.status === "settled" || trip.status === "coordinating")
+                      ? " Already-confirmed payments will be preserved and the settlement will be recalculated."
+                      : " The expenses will be added to the review list."}
+                  </DialogDescription>
+                </DialogHeader>
+                <AddLateExpenses
+                  tripId={trip.id}
+                  participants={participants}
+                  batch={currentBatch}
+                  currentStatus={trip.status}
+                  onDone={() => setLateExpenseMode("none")}
+                />
+              </DialogContent>
+            </Dialog>
+
+            <Dialog
+              open={lateExpenseMode === "single"}
+              onOpenChange={(open) => { if (!open) setLateExpenseMode("none"); }}
+            >
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add Single Expense</DialogTitle>
+                  <DialogDescription>
+                    Manually enter the expense details.
+                    {(trip.status === "settled" || trip.status === "coordinating")
+                      ? " The settlement will be recalculated."
+                      : " The expense will be added to the review list."}
+                  </DialogDescription>
+                </DialogHeader>
+                <AddSingleExpense
+                  tripId={trip.id}
+                  participants={participants}
+                  batch={currentBatch}
+                  currentStatus={trip.status}
+                  onDone={() => setLateExpenseMode("none")}
+                />
+              </DialogContent>
+            </Dialog>
           </>
         )}
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TripStatus } from "@/lib/types";
 
@@ -21,10 +22,12 @@ export function TripStepper({
   currentStatus,
   viewingStatus,
   onStepClick,
+  isCompleted = false,
 }: {
   currentStatus: TripStatus;
   viewingStatus: TripStatus;
   onStepClick: (status: TripStatus) => void;
+  isCompleted?: boolean;
 }) {
   const currentIdx = ORDER[currentStatus];
   const viewingIdx = ORDER[viewingStatus];
@@ -51,7 +54,11 @@ export function TripStepper({
               isReachable && "cursor-pointer"
             )}
           >
-            <span className="mr-1.5 text-[10px] opacity-50">{i + 1}.</span>
+            {isCompleted && step.status === "coordinating" ? (
+              <CheckCircle2 className="mr-1 size-3.5 text-emerald-600" />
+            ) : (
+              <span className="mr-1.5 text-[10px] opacity-50">{i + 1}.</span>
+            )}
             {step.label}
           </button>
         );

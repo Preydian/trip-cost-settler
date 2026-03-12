@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { UsersIcon, ReceiptTextIcon, CircleDollarSignIcon, ClockIcon, Trash2Icon, LinkIcon, CheckIcon } from "lucide-react";
+import { UsersIcon, ReceiptTextIcon, CircleDollarSignIcon, ClockIcon, Trash2Icon, LinkIcon, CheckIcon, CircleCheckIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deleteTrip } from "@/actions/trips";
@@ -50,23 +50,36 @@ function StageDetail({ trip }: { trip: TripSummary }) {
         </div>
       );
     case "settled":
-    case "coordinating":
+    case "coordinating": {
+      const allDone =
+        trip.status === "coordinating" &&
+        trip.total_payments > 0 &&
+        trip.pending_payments === 0;
       return (
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {trip.total_payments > 0 && (
-            <span className="flex items-center gap-1">
-              <ClockIcon className="size-3" />
-              {trip.total_payments - trip.pending_payments}/{trip.total_payments} paid
+          {allDone ? (
+            <span className="flex items-center gap-1 text-emerald-600">
+              All settled
             </span>
-          )}
-          {trip.outstanding_amount > 0 && (
-            <span className="flex items-center gap-1 text-destructive">
-              <CircleDollarSignIcon className="size-3" />
-              {formatCurrency(trip.outstanding_amount, trip.currency)} outstanding
-            </span>
+          ) : (
+            <>
+              {trip.total_payments > 0 && (
+                <span className="flex items-center gap-1">
+                  <ClockIcon className="size-3" />
+                  {trip.total_payments - trip.pending_payments}/{trip.total_payments} paid
+                </span>
+              )}
+              {trip.outstanding_amount > 0 && (
+                <span className="flex items-center gap-1 text-destructive">
+                  <CircleDollarSignIcon className="size-3" />
+                  {formatCurrency(trip.outstanding_amount, trip.currency)} outstanding
+                </span>
+              )}
+            </>
           )}
         </div>
       );
+    }
   }
 }
 
@@ -74,6 +87,10 @@ function TripCard({ trip }: { trip: TripSummary }) {
   const [isPending, startTransition] = useTransition();
   const [copied, setCopied] = useState(false);
   const stageLabel = STAGE_LABELS[trip.status];
+  const isCompleted =
+    trip.status === "coordinating" &&
+    trip.total_payments > 0 &&
+    trip.pending_payments === 0;
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -123,7 +140,14 @@ function TripCard({ trip }: { trip: TripSummary }) {
       </div>
 
       <div className="mt-2">
-        <Badge className="bg-foreground/90 text-background">{stageLabel}</Badge>
+        {isCompleted ? (
+          <Badge className="bg-emerald-500/15 text-emerald-600">
+            <CircleCheckIcon className="size-3" />
+            Completed
+          </Badge>
+        ) : (
+          <Badge className="bg-foreground/90 text-background">{stageLabel}</Badge>
+        )}
       </div>
 
       <div className="mt-auto pt-3 flex items-center gap-3">

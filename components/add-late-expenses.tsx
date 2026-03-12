@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { saveExtractedExpenses } from "@/actions/expenses";
@@ -102,49 +101,38 @@ export function AddLateExpenses({
   const busy = loading || isPending;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Add Late Expense</CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Paste the new expense message.
-          {needsResettle
-            ? " Already-confirmed payments will be preserved and the settlement will be recalculated."
-            : " The expenses will be added to the review list."}
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <Textarea
-          placeholder={`e.g. "Hey, I forgot - I also paid $120 for the rental car on day two"`}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={4}
-          disabled={busy}
-        />
+    <div className="space-y-3">
+      <Textarea
+        placeholder={`e.g. "Hey, I forgot - I also paid $120 for the rental car on day two"`}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={4}
+        disabled={busy}
+      />
 
-        {status && (
-          <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
-            {status}
-          </div>
-        )}
+      {status && (
+        <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
+          {status}
+        </div>
+      )}
 
-        {error && (
-          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
-        <Button
-          onClick={handleExtract}
-          disabled={!text.trim() || busy}
-          className="w-full"
-        >
-          {busy
-            ? "Processing..."
-            : needsResettle
-              ? "Add & Recalculate Settlement"
-              : "Add Expenses"}
-        </Button>
-      </CardContent>
-    </Card>
+      <Button
+        onClick={handleExtract}
+        disabled={!text.trim() || busy}
+        className="w-full"
+      >
+        {busy
+          ? "Processing..."
+          : needsResettle
+            ? "Add & Recalculate Settlement"
+            : "Add Expenses"}
+      </Button>
+    </div>
   );
 }
