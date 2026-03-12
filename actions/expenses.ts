@@ -63,6 +63,7 @@ export async function saveExtractedExpenses(
         amount: exp.amount,
         split_mode: exp.split_among ? "custom" : "equal",
         batch,
+        source_text: exp.source_text ?? null,
       })
       .select("id")
       .single();

@@ -137,7 +137,6 @@ export function SettlementSummary({
         </CardContent>
       </Card>
 
-      <Separator />
 
       <Card>
         <CardHeader>

@@ -9,6 +9,7 @@ const extractionSchema = z.object({
       description: z.string(),
       amount: z.number().positive(),
       split_among: z.array(z.string()).nullable(),
+      source_text: z.string().nullable(),
     })
   ),
   participants: z.array(z.string()),
@@ -38,6 +39,9 @@ Return a JSON object with these exact keys:
   - split_among (string[] or null): if the message specifies who this expense
     is split among, list those names. If it's for everyone or not specified,
     use null.
+  - source_text (string or null): the exact snippet from the original message
+    that this expense was extracted from. Keep it short — just the relevant
+    clause, e.g. "I booked the Airbnb for $640".
 - participants (string[]): list of ALL unique people mentioned (payers and
   those in split_among). Normalize names: if "Dave" and "David" appear to be
   the same person, pick one form and use it consistently.

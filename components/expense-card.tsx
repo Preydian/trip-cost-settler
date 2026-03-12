@@ -169,6 +169,11 @@ export function ExpenseCard({
               <span className="font-medium">{expense.paid_by.name}</span>
               {splitLabel && <> &middot; Split: {splitLabel}</>}
             </div>
+            {expense.source_text && (
+              <p className="mt-0.5 text-xs italic text-muted-foreground/60">
+                &ldquo;{expense.source_text}&rdquo;
+              </p>
+            )}
           </div>
           {!readOnly && (
             <div className="flex gap-1">

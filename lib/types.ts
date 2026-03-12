@@ -27,6 +27,7 @@ export interface Expense {
   amount: number;
   split_mode: SplitMode;
   batch: number;
+  source_text: string | null;
   created_at: string;
 }
 
@@ -74,6 +75,7 @@ export interface ExtractedExpense {
   description: string;
   amount: number;
   split_among: string[] | null;
+  source_text: string | null;
 }
 
 export interface ExtractionResult {
