@@ -16,10 +16,13 @@ import {
 import { createTrip } from "@/actions/trips";
 
 export function CreateTripForm() {
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (open) {
@@ -36,6 +39,15 @@ export function CreateTripForm() {
       setOpen(false);
     });
   };
+
+  if (!mounted) {
+    return (
+      <Button className="bg-foreground text-background hover:bg-foreground/90" disabled>
+        <PlusIcon className="size-4" />
+        New Trip
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

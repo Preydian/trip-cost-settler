@@ -97,7 +97,7 @@ function TripCard({ trip }: { trip: TripSummary }) {
   return (
     <Link
       href={`/trip/${trip.id}`}
-      className="group flex flex-col justify-between rounded-lg border p-4 transition-colors hover:bg-muted"
+      className="group flex flex-col justify-between rounded-xl border border-border/60 bg-card p-4 shadow-card transition-all hover:shadow-card-hover"
     >
       <div className="flex items-start justify-between gap-2">
         <span className="truncate font-medium leading-6">{trip.name}</span>
@@ -123,7 +123,7 @@ function TripCard({ trip }: { trip: TripSummary }) {
       </div>
 
       <div className="mt-2">
-        <Badge className="bg-foreground text-background">{stageLabel}</Badge>
+        <Badge className="bg-foreground/90 text-background">{stageLabel}</Badge>
       </div>
 
       <div className="mt-auto pt-3 flex items-center gap-3">
@@ -136,9 +136,9 @@ function TripCard({ trip }: { trip: TripSummary }) {
         <StageDetail trip={trip} />
       </div>
 
-      <div className="mt-2 border-t pt-2">
-        <span className="text-xs text-muted-foreground" suppressHydrationWarning>
-          {formatDistanceToNow(new Date(trip.updated_at), { addSuffix: true })}
+      <div className="mt-3 border-t border-border/40 pt-2">
+        <span className="text-[11px] text-muted-foreground" suppressHydrationWarning>
+          Updated {formatDistanceToNow(new Date(trip.updated_at), { addSuffix: true })}
         </span>
       </div>
     </Link>
@@ -148,14 +148,16 @@ function TripCard({ trip }: { trip: TripSummary }) {
 export function UserTrips({ trips }: { trips: TripSummary[] }) {
   if (trips.length === 0) {
     return (
-      <p className="py-12 text-center text-sm text-muted-foreground">
-        No trips yet. Create one above to get started!
-      </p>
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16">
+        <p className="text-sm text-muted-foreground">
+          No trips yet. Create one to get started.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-4">
       {trips.map((trip) => (
         <TripCard key={trip.id} trip={trip} />
       ))}

@@ -97,13 +97,13 @@ export function ParseExpensesForm({
       </div>
 
       {status && (
-        <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
+        <div className="rounded-lg bg-muted/80 p-3 text-sm text-muted-foreground">
           {status}
         </div>
       )}
 
       {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+        <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}

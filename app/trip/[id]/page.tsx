@@ -104,8 +104,8 @@ export default async function TripPage({
   const isOwner = !!user && trip.user_id === user.id;
 
   return (
-    <div className="mx-auto min-h-screen max-w-3xl px-4 py-8">
-      <div className="mb-6">
+    <div className="mx-auto min-h-screen max-w-3xl px-4 py-10">
+      <div className="mb-8">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -113,8 +113,8 @@ export default async function TripPage({
           <ArrowLeftIcon className="size-3.5" />
           Dashboard
         </Link>
-        <div className="mt-2 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{trip.name}</h1>
+        <div className="mt-3 flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">{trip.name}</h1>
           {isOwner && <ShareTripButton tripId={trip.id} />}
         </div>
       </div>

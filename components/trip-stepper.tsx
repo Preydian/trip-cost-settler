@@ -30,7 +30,7 @@ export function TripStepper({
   const viewingIdx = ORDER[viewingStatus];
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 rounded-lg bg-muted/60 p-1">
       {STEPS.map((step, i) => {
         const isViewing = i === viewingIdx;
         const isDone = i < currentIdx;
@@ -43,15 +43,15 @@ export function TripStepper({
             disabled={!isReachable}
             onClick={() => onStepClick(step.status)}
             className={cn(
-              "flex h-8 w-full flex-1 items-center justify-center rounded-md text-xs font-medium transition-colors",
-              isViewing && "bg-primary text-primary-foreground",
-              !isViewing && isDone && "bg-primary/20 text-primary hover:bg-primary/30",
-              !isViewing && !isDone && i === currentIdx && "bg-muted text-foreground hover:bg-muted/80",
-              !isReachable && "bg-muted text-muted-foreground opacity-50 cursor-default",
+              "flex h-8 w-full flex-1 items-center justify-center rounded-md text-xs font-medium transition-all",
+              isViewing && "bg-card text-foreground shadow-sm",
+              !isViewing && isDone && "text-foreground/70 hover:text-foreground hover:bg-card/50",
+              !isViewing && !isDone && i === currentIdx && "text-foreground/70 hover:text-foreground hover:bg-card/50",
+              !isReachable && "text-muted-foreground/40 cursor-default",
               isReachable && "cursor-pointer"
             )}
           >
-            <span className="mr-1.5 text-[10px]">{i + 1}.</span>
+            <span className="mr-1.5 text-[10px] opacity-50">{i + 1}.</span>
             {step.label}
           </button>
         );
