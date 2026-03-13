@@ -55,6 +55,7 @@ Run `supabase/schema.sql` in your Supabase SQL Editor to create the tables and R
 
 1. `supabase/migration-add-user-id.sql`
 2. `supabase/migration-fix-rls-authenticated.sql`
+3. `supabase/migration-add-source-text.sql`
 
 ### Run
 
