@@ -4,6 +4,7 @@ export interface Trip {
   id: string;
   name: string;
   currency: string;
+  settlement_currency: string | null;
   status: TripStatus;
   user_id: string | null;
   created_at: string;
@@ -43,10 +44,17 @@ export interface ExpenseWithDetails extends Expense {
   splits: (ExpenseSplit & { participant: Participant })[];
 }
 
+export interface CurrencyConversionData {
+  from: string;
+  to: string;
+  rates: Record<string, number>; // "YYYY-MM-DD" -> rate
+}
+
 export interface Settlement {
   id: string;
   trip_id: string;
   batch: number;
+  currency_conversion: CurrencyConversionData | null;
   created_at: string;
 }
 

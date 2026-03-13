@@ -4,6 +4,7 @@ import { useState, useTransition, useMemo } from "react";
 import { LayoutListIcon, LayoutGridIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExpenseCard } from "@/components/expense-card";
+import { CurrencySettings } from "@/components/currency-settings";
 import { createSettlement } from "@/actions/settlements";
 import { updateTripStatus } from "@/actions/trips";
 import { formatCurrency } from "@/lib/settlement";
@@ -16,12 +17,14 @@ export function ExpenseReviewList({
   expenses,
   participants,
   currency,
+  settlementCurrency,
   readOnly = false,
 }: {
   tripId: string;
   expenses: ExpenseWithDetails[];
   participants: Participant[];
   currency: string;
+  settlementCurrency: string;
   readOnly?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
@@ -66,6 +69,13 @@ export function ExpenseReviewList({
 
   return (
     <div className="space-y-4">
+      <CurrencySettings
+        tripId={tripId}
+        expenseCurrency={currency}
+        settlementCurrency={settlementCurrency}
+        readOnly={readOnly}
+      />
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Review Expenses</h2>

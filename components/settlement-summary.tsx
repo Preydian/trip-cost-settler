@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useTransition } from "react";
+import { format } from "date-fns";
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import type {
   ExpenseWithDetails,
   Participant,
   PaymentWithNames,
+  CurrencyConversionData,
 } from "@/lib/types";
 
 const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -53,31 +55,50 @@ function groupByBatch(payments: PaymentWithNames[]): PaymentWithNames[][] {
   return groups;
 }
 
+function getConversionRate(
+  expense: ExpenseWithDetails,
+  conversion: CurrencyConversionData | null
+): number {
+  if (!conversion) return 1;
+  const dateKey = format(new Date(expense.created_at), "yyyy-MM-dd");
+  return conversion.rates[dateKey] ?? 1;
+}
+
 export function SettlementSummary({
   tripId,
   expenses,
   participants,
   payments,
-  currency,
+  expenseCurrency,
+  settlementCurrency,
+  currencyConversion = null,
   readOnly = false,
 }: {
   tripId: string;
   expenses: ExpenseWithDetails[];
   participants: Participant[];
   payments: PaymentWithNames[];
-  currency: string;
+  expenseCurrency: string;
+  settlementCurrency: string;
+  currencyConversion?: CurrencyConversionData | null;
   readOnly?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
+  const needsConversion = expenseCurrency !== settlementCurrency;
 
-  // Compute per-person summary
+  // Compute per-person summary (in settlement currency if converted)
   const summary = participants.map((p) => {
     const paid = expenses
       .filter((e) => e.paid_by_id === p.id)
-      .reduce((sum, e) => sum + Number(e.amount), 0);
+      .reduce((sum, e) => {
+        const rate = getConversionRate(e, currencyConversion);
+        return sum + Math.round(Number(e.amount) * rate * 100) / 100;
+      }, 0);
     const owes = expenses.reduce((sum, e) => {
       const split = e.splits.find((s) => s.participant_id === p.id);
-      return sum + (split ? Number(split.amount) : 0);
+      if (!split) return sum;
+      const rate = getConversionRate(e, currencyConversion);
+      return sum + Math.round(Number(split.amount) * rate * 100) / 100;
     }, 0);
     return { participant: p, paid, owes, net: paid - owes };
   });
@@ -103,6 +124,11 @@ export function SettlementSummary({
           <CardTitle>Balance Summary</CardTitle>
           <CardDescription>
             How much each person paid vs. what they owe
+            {needsConversion && (
+              <span className="block mt-1">
+                Converted from {expenseCurrency} to {settlementCurrency}
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -115,10 +141,10 @@ export function SettlementSummary({
                 <span className="font-medium">{participant.name}</span>
                 <div className="flex gap-4 text-xs">
                   <span className="text-muted-foreground">
-                    Paid {formatCurrency(paid, currency)}
+                    Paid {formatCurrency(paid, settlementCurrency)}
                   </span>
                   <span className="text-muted-foreground">
-                    Owes {formatCurrency(owes, currency)}
+                    Owes {formatCurrency(owes, settlementCurrency)}
                   </span>
                   <span
                     className={
@@ -130,7 +156,7 @@ export function SettlementSummary({
                     }
                   >
                     {net > 0 ? "+" : ""}
-                    {formatCurrency(net, currency)}
+                    {formatCurrency(net, settlementCurrency)}
                   </span>
                 </div>
               </div>
@@ -152,6 +178,11 @@ export function SettlementSummary({
             {activePayments.length === 0
               ? "Everyone is already square!"
               : `${activePayments.length} payment${activePayments.length === 1 ? "" : "s"} to settle up`}
+            {needsConversion && activePayments.length > 0 && (
+              <span className="block mt-1">
+                Amounts in {settlementCurrency}
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -180,7 +211,7 @@ export function SettlementSummary({
                       <ArrowRight className="size-4 text-muted-foreground" />
                       <span className="font-medium">{payment.to.name}</span>
                       <span className="ml-auto font-semibold text-primary">
-                        {formatCurrency(Number(payment.amount), currency)}
+                        {formatCurrency(Number(payment.amount), settlementCurrency)}
                       </span>
                     </div>
                   ))}

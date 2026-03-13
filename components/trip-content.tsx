@@ -24,6 +24,7 @@ import type {
   Participant,
   ExpenseWithDetails,
   PaymentWithNames,
+  CurrencyConversionData,
 } from "@/lib/types";
 
 const ORDER: Record<string, number> = {
@@ -41,6 +42,7 @@ export function TripContent({
   payments,
   currentBatch,
   isOwner = false,
+  currencyConversion = null,
 }: {
   trip: Trip;
   participants: Participant[];
@@ -49,6 +51,7 @@ export function TripContent({
   payments: PaymentWithNames[];
   currentBatch: number;
   isOwner?: boolean;
+  currencyConversion?: CurrencyConversionData | null;
 }) {
   const [viewingStatus, setViewingStatus] = useState(trip.status);
   const [lateExpenseMode, setLateExpenseMode] = useState<"none" | "bulk" | "single">("none");
@@ -90,6 +93,7 @@ export function TripContent({
             expenses={expenses}
             participants={participants}
             currency={trip.currency}
+            settlementCurrency={trip.settlement_currency || trip.currency}
             readOnly={readOnly}
           />
         )}
@@ -100,7 +104,9 @@ export function TripContent({
             expenses={expenses}
             participants={participants}
             payments={payments}
-            currency={trip.currency}
+            expenseCurrency={trip.currency}
+            settlementCurrency={trip.settlement_currency || trip.currency}
+            currencyConversion={currencyConversion}
             readOnly={readOnly}
           />
         )}
@@ -109,7 +115,7 @@ export function TripContent({
           <PaymentTracker
             tripId={trip.id}
             payments={payments}
-            currency={trip.currency}
+            currency={trip.settlement_currency || trip.currency}
             readOnly={readOnly}
           />
         )}

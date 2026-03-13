@@ -37,6 +37,27 @@ export async function deleteTrip(tripId: string) {
   revalidatePath("/");
 }
 
+export async function updateTripCurrencies(
+  tripId: string,
+  expenseCurrency: string,
+  settlementCurrency: string
+) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("trips")
+    .update({
+      currency: expenseCurrency,
+      settlement_currency: settlementCurrency,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", tripId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/trip/${tripId}`);
+}
+
 export async function updateTripStatus(tripId: string, status: TripStatus) {
   const supabase = await createClient();
 

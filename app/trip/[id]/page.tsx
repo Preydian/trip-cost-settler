@@ -11,6 +11,7 @@ import type {
   PaymentWithNames,
   Settlement,
   RawInput,
+  CurrencyConversionData,
 } from "@/lib/types";
 
 async function loadTripData(tripId: string) {
@@ -77,12 +78,15 @@ async function loadTripData(tripId: string) {
     }
   }
 
+  const latestSettlement = (settlements?.[0] ?? null) as Settlement | null;
+
   return {
     trip: trip as Trip,
     participants: (participants ?? []) as Participant[],
     expenses: (expenses ?? []) as ExpenseWithDetails[],
     rawInputs: (rawInputs ?? []) as RawInput[],
-    latestSettlement: (settlements?.[0] ?? null) as Settlement | null,
+    latestSettlement,
+    currencyConversion: (latestSettlement?.currency_conversion ?? null) as CurrencyConversionData | null,
     payments,
   };
 }
@@ -99,7 +103,7 @@ export default async function TripPage({
 
   if (!data) notFound();
 
-  const { trip, participants, expenses, rawInputs, latestSettlement, payments } = data;
+  const { trip, participants, expenses, rawInputs, latestSettlement, currencyConversion, payments } = data;
   const currentBatch = latestSettlement ? latestSettlement.batch + 1 : 1;
   const isOwner = !!user && trip.user_id === user.id;
 
@@ -127,6 +131,7 @@ export default async function TripPage({
         payments={payments}
         currentBatch={currentBatch}
         isOwner={isOwner}
+        currencyConversion={currencyConversion}
       />
     </div>
   );
