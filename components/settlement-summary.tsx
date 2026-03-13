@@ -93,6 +93,8 @@ export function SettlementSummary({
   const activePayments = payments.filter((p) => p.status !== "cancelled");
   const paymentGroups = useMemo(() => groupByBatch(activePayments), [activePayments]);
   const hasMultipleBatches = paymentGroups.length > 1;
+  const hasConfirmedPayments = activePayments.some((p) => p.status === "confirmed");
+  const wasRecalculated = hasMultipleBatches && hasConfirmedPayments;
 
   return (
     <div className="space-y-4">
@@ -134,9 +136,14 @@ export function SettlementSummary({
               </div>
             ))}
           </div>
+
+          {wasRecalculated && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Net balances reflect the true amount each person owes or is owed. The settlement plan below accounts for payments already completed and shows only the remaining steps needed to square up, so individual payment amounts may differ.
+            </p>
+          )}
         </CardContent>
       </Card>
-
 
       <Card>
         <CardHeader>
