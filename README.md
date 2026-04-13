@@ -1,4 +1,4 @@
-# Trip Cost Settler
+# Trip Cost Settler (not live anymore :()
 
 A web app for splitting group trip expenses. Paste informal messages about who paid for what, and AI extracts the expenses, calculates who owes whom, and tracks payments until everyone is settled.
 
